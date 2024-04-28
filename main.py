@@ -25,6 +25,7 @@ class ApplicationWeather(QMainWindow):
         self.city_combo = QComboBox(self)
         self.city_combo.addItems(["Львів", "Київ", "Одеса", "Харків", "Ужгород", "Миколаїв", "Вінниця", "Житомир", "Тернопіль"])
         self.layout.addWidget(self.city_combo)
+        # self.city_combo.currentIndexChanged.connect(self.get_weather())
 
         # self.city_combo.currentIndexChanged.connect(self.get_wather)
         self.city_combo.setStyleSheet("""
@@ -40,6 +41,50 @@ class ApplicationWeather(QMainWindow):
 
 
         """)
+        self.button = QPushButton('Отримати погоду', self)
+        self.layout.addWidget(self.button)
+        self.button.clicked.connect(self.get_weather)
+        self.button.setStyleSheet("""
+            QpushButton {
+                background-color: #007bff;
+                color: #fff;
+                padding: 7px 10px;
+                border: none;
+                border-radius: 3px;
+            }
+            QPushButton: hover {
+                background-color: #0056b3;
+
+        
+        """)
+
+    def get_weather(self):
+        api_key = 'f81703c1f3b81ad93e6644153c4a426e'
+        city = self.city_combo.currentText()
+        url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric"
+
+        response = requests.get(url)
+        data = response.json()
+
+        if data ['cod'] == 200:
+            weather = data['weather'][0]['description']
+            temperature = data['main']['temp']
+            humidity = data['main']['humidity']
+            wind_speed = data['main']['speed']
+            icon_name = data['weather'][0]['icon']
+
+            weather_text = f'Погода: {weather}\nТемпература: {temperature}℃\nВологість: {humidity}%\nШвидкість вітру:{wind_speed} м/с'
+            self.weather_label.setText(weather_text)
+
+            pixmap = QPixmap()
+            pixmap.loadFromData(requests.get(icon_name).content)
+            self.icon_label.setPixmap(pixmap)
+
+            now = datetime.now()
+            formated_date = now.strftime("%d.%m.%Y %H:%M:%S")
+            self.icon_label.setText(f"Останнє оновлення: (formatted_date) ")
+        else:
+            self.wheather_label.setText('Місто не знайдено.Спробуйте ще раз.')
 
 
 
